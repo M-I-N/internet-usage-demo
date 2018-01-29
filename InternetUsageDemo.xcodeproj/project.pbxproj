@@ -12,6 +12,7 @@
 		AFE7D21C201EDF910074071F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AFE7D21A201EDF910074071F /* Main.storyboard */; };
 		AFE7D21E201EDF910074071F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AFE7D21D201EDF910074071F /* Assets.xcassets */; };
 		AFE7D221201EDF910074071F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AFE7D21F201EDF910074071F /* LaunchScreen.storyboard */; };
+		AFE7D22A201EE6DE0074071F /* DataUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFE7D229201EE6DE0074071F /* DataUsage.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +23,7 @@
 		AFE7D21D201EDF910074071F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AFE7D220201EDF910074071F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AFE7D222201EDF910074071F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AFE7D229201EE6DE0074071F /* DataUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataUsage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +56,7 @@
 		AFE7D215201EDF910074071F /* InternetUsageDemo */ = {
 			isa = PBXGroup;
 			children = (
+				AFE7D228201EE6BC0074071F /* Classes */,
 				AFE7D216201EDF910074071F /* AppDelegate.swift */,
 				AFE7D218201EDF910074071F /* ViewController.swift */,
 				AFE7D21A201EDF910074071F /* Main.storyboard */,
@@ -62,6 +65,14 @@
 				AFE7D222201EDF910074071F /* Info.plist */,
 			);
 			path = InternetUsageDemo;
+			sourceTree = "<group>";
+		};
+		AFE7D228201EE6BC0074071F /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				AFE7D229201EE6DE0074071F /* DataUsage.swift */,
+			);
+			path = Classes;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -96,7 +107,7 @@
 				TargetAttributes = {
 					AFE7D212201EDF910074071F = {
 						CreatedOnToolsVersion = 9.0;
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 					};
 				};
 			};
@@ -138,6 +149,7 @@
 			files = (
 				AFE7D219201EDF910074071F /* ViewController.swift in Sources */,
 				AFE7D217201EDF910074071F /* AppDelegate.swift in Sources */,
+				AFE7D22A201EE6DE0074071F /* DataUsage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -211,7 +223,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -262,7 +274,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -274,11 +286,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = 2BL4KQW6R5;
 				INFOPLIST_FILE = InternetUsageDemo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.bjitgroup.InternetUsageDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "dba3a049-8a75-4790-a491-2f07b4cac17d";
+				PROVISIONING_PROFILE_SPECIFIER = BJITWILDCARDDEV;
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -288,11 +303,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = InternetUsageDemo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.bjitgroup.InternetUsageDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

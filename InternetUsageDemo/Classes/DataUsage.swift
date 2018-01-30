@@ -18,15 +18,16 @@ class DataUsage: NSObject {
         guard getifaddrs(&interfaceAddress) == 0 else {
             return dataUsageInfo
         }
-        var pointer = interfaceAddress
-        while pointer != nil {
+        
+        while let pointer = interfaceAddress {
             // get the datausage info
-            guard let info = DataUsage.dataUsageInfo(from: pointer!) else {
-                pointer = pointer?.pointee.ifa_next
+            guard let info = DataUsage.dataUsageInfo(from: pointer) else {
+                interfaceAddress = pointer.pointee.ifa_next
                 continue
             }
-            dataUsageInfo.updateInfoByAdding(info: info)
-            pointer = pointer?.pointee.ifa_next
+            // new data usage found, append it with the previous data usage
+            dataUsageInfo += info
+            interfaceAddress = pointer.pointee.ifa_next
         }
         freeifaddrs(interfaceAddress)
         return dataUsageInfo
@@ -65,11 +66,15 @@ struct DataUsageInfo {
     var wwanDataSent: UInt32 = 0
     var wwanDataReceived: UInt32 = 0
 
-    mutating func updateInfoByAdding(info: DataUsageInfo) {
+    private mutating func updateInfoByAdding(info: DataUsageInfo) {
         wifiSent += info.wifiSent
         wifiReceived += info.wifiReceived
         
         wwanDataSent += info.wwanDataSent
         wwanDataReceived += info.wwanDataReceived
+    }
+
+    static func +=( lhs: inout DataUsageInfo, rhs: DataUsageInfo) {
+        lhs.updateInfoByAdding(info: rhs)
     }
 }

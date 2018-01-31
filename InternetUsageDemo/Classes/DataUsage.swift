@@ -58,34 +58,71 @@ class DataUsage: NSObject {
         return dataUsageInfo
     }
 
-    private static func save(info: DataUsageInfo, inDatabase: Bool = true) {
-        if inDatabase {
-            UserDefaults.standard.set(info, forKey: "LastDataUsage")
-        }
+    static func saveTotal(dataUsageInfo: DataUsageInfo) {
+        var lastTotal = getTotalDataUsageInfoFromDatabase()
+        lastTotal += dataUsageInfo
+        let encodedInfo = try? PropertyListEncoder().encode(lastTotal)
+        UserDefaults.standard.set(encodedInfo, forKey: "LastDataUsage")
     }
-
-    private static func getDataUsageInfoFromDatabase() -> DataUsageInfo {
-        guard let dataUsageInfo = UserDefaults.standard.value(forKey: "LastDataUsage") as? DataUsageInfo else {
-            return DataUsageInfo()
+    
+    static func getTotalDataUsageInfoFromDatabase() -> DataUsageInfo {
+        guard let dataUsageInfoData = UserDefaults.standard.value(forKey: "LastDataUsage") as? Data,
+            let dataUsageInfo = try? PropertyListDecoder().decode(DataUsageInfo.self, from: dataUsageInfoData) else {
+                return DataUsageInfo()
         }
         return dataUsageInfo
     }
-
+    
+//    private static func append(info: DataUsageInfo) {
+//            var dataUsageInfo = getDataUsageInfoFromDatabase()
+//            dataUsageInfo += info
+//            DataUsage.saveTotal(dataUsageInfo: dataUsageInfo)
+//    }
+    
+    static func saveCurrent(dataUsageInfo: DataUsageInfo) {
+        let encodedInfo = try? PropertyListEncoder().encode(dataUsageInfo)
+        UserDefaults.standard.set(encodedInfo, forKey: "CurrentDataUsageInfo")
+    }
+    static func getLastSessionDataUsageInfoFromDatabase() -> DataUsageInfo {
+        guard let dataUsageInfoData = UserDefaults.standard.value(forKey: "CurrentDataUsageInfo") as? Data,
+            let dataUsageInfo = try? PropertyListDecoder().decode(DataUsageInfo.self, from: dataUsageInfoData) else {
+                return DataUsageInfo()
+        }
+        return dataUsageInfo
+    }
+    static func getCurrentSessionDataUsageInfoFromDatabase() -> DataUsageInfo {
+        return getLastSessionDataUsageInfoFromDatabase()
+    }
 
     class func allSessionsDataUsageInfo() -> DataUsageInfo {
         var dataUsageInfo = DataUsageInfo()
         if DeviceManager.rebootOccuredFromLastTime {
             // get usage info from data base and append it with current session
-            dataUsageInfo += DataUsage.getDataUsageInfoFromDatabase()
+            dataUsageInfo += DataUsage.getTotalDataUsageInfoFromDatabase()
             dataUsageInfo += DataUsage.currentSessionDataUsageInfo()
         } else {
             dataUsageInfo += DataUsage.currentSessionDataUsageInfo()
         }
         return dataUsageInfo
     }
+    
+    class func allsessionDataUsageInfo() {
+        /*var info = DataUsageInfo()
+        
+        if DeviceManager.rebootOccuredFromLastTime {
+            info += DataUsage.getDataUsageInfoFromDatabase()
+        }
+        info += DataUsage.currentSessionDataUsageInfo()*/
+        
+        if DeviceManager.rebootOccuredFromLastTime {
+            var info = DataUsage.getTotalDataUsageInfoFromDatabase()
+            info += DataUsage.currentSessionDataUsageInfo()
+        }
+        
+    }
 }
 
-struct DataUsageInfo {
+struct DataUsageInfo: Codable {
     var wifiSent: UInt32 = 0
     var wifiReceived: UInt32 = 0
     var wwanDataSent: UInt32 = 0
@@ -130,7 +167,7 @@ enum DeviceManager {
     // FIXME:- maybe app delegate should call this
     static func registerForDeviceBootTime() {
         let deviceBootTime = DeviceManager.deviceCurrentBootTime
-        UserDefaults.standard.set(deviceBootTime, forKey: deviceBootTimeKey)
+        DeviceManager.storedLastBootTime = deviceBootTime
     }
     static var deviceCurrentBootTime: Date {
         let systemUpTime = ProcessInfo.processInfo.systemUptime
@@ -138,21 +175,28 @@ enum DeviceManager {
         let deviceBootTime = nowTime - systemUpTime
         return deviceBootTime
     }
-    static var deviceLastBootTime: Date {
-        guard let lastBootTime = UserDefaults.standard.value(forKey: deviceBootTimeKey) as? Date else {
-            return DeviceManager.deviceCurrentBootTime
+    static var storedLastBootTime: Date {
+        get {
+            guard let lastBootTime = UserDefaults.standard.value(forKey: deviceBootTimeKey) as? Date else {
+                let oldestDate = Date(timeIntervalSince1970: 0)
+                return oldestDate
+            }
+            return lastBootTime
         }
-        return lastBootTime
+        set {
+            UserDefaults.standard.set(newValue, forKey: deviceBootTimeKey)
+        }
     }
 
     static var rebootOccuredFromLastTime: Bool {
         let deviceCurrentBootTime = DeviceManager.deviceCurrentBootTime
-        let storedLastBootTime = DeviceManager.deviceLastBootTime
+        let storedLastBootTime = DeviceManager.storedLastBootTime
         let timeInterval = deviceCurrentBootTime.timeIntervalSince(storedLastBootTime)
         if timeInterval > 1 {
             // FIXME:- may need to re-think
             // registerForDeviceBootTime maybe needed here
-            DeviceManager.registerForDeviceBootTime()
+//            DeviceManager.registerForDeviceBootTime()
+            DeviceManager.storedLastBootTime = deviceCurrentBootTime
             return true
         }
         return false

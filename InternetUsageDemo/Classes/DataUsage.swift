@@ -58,6 +58,31 @@ class DataUsage: NSObject {
         return dataUsageInfo
     }
 
+    private static func save(info: DataUsageInfo, inDatabase: Bool = true) {
+        if inDatabase {
+            UserDefaults.standard.set(info, forKey: "LastDataUsage")
+        }
+    }
+
+    private static func getDataUsageInfoFromDatabase() -> DataUsageInfo {
+        guard let dataUsageInfo = UserDefaults.standard.value(forKey: "LastDataUsage") as? DataUsageInfo else {
+            return DataUsageInfo()
+        }
+        return dataUsageInfo
+    }
+
+
+    class func allSessionsDataUsageInfo() -> DataUsageInfo {
+        var dataUsageInfo = DataUsageInfo()
+        if DeviceManager.rebootOccuredFromLastTime {
+            // get usage info from data base and append it with current session
+            dataUsageInfo += DataUsage.getDataUsageInfoFromDatabase()
+            dataUsageInfo += DataUsage.currentSessionDataUsageInfo()
+        } else {
+            dataUsageInfo += DataUsage.currentSessionDataUsageInfo()
+        }
+        return dataUsageInfo
+    }
 }
 
 struct DataUsageInfo {
@@ -78,3 +103,62 @@ struct DataUsageInfo {
         lhs.updateInfoByAdding(info: rhs)
     }
 }
+
+enum AppLaunchManager {
+
+    // MARK: - Private Attributes
+    private static let launchesCountKey = "AppLaunchesCount"
+
+
+    // MARK: Public Enum Methods & Variables
+
+    static func registerLaunch() {
+        UserDefaults.standard.set(launchesCount + 1, forKey: launchesCountKey)
+    }
+
+    static var launchesCount: Int {
+        let launchCount = UserDefaults.standard.integer(forKey: launchesCountKey)
+        return launchCount
+    }
+    static var isFirstLaunch: Bool {
+        return launchesCount <= 1
+    }
+}
+
+enum DeviceManager {
+    private static let deviceBootTimeKey = "DeviceBootTime"
+    // FIXME:- maybe app delegate should call this
+    static func registerForDeviceBootTime() {
+        let deviceBootTime = DeviceManager.deviceCurrentBootTime
+        UserDefaults.standard.set(deviceBootTime, forKey: deviceBootTimeKey)
+    }
+    static var deviceCurrentBootTime: Date {
+        let systemUpTime = ProcessInfo.processInfo.systemUptime
+        let nowTime = Date()
+        let deviceBootTime = nowTime - systemUpTime
+        return deviceBootTime
+    }
+    static var deviceLastBootTime: Date {
+        guard let lastBootTime = UserDefaults.standard.value(forKey: deviceBootTimeKey) as? Date else {
+            return DeviceManager.deviceCurrentBootTime
+        }
+        return lastBootTime
+    }
+
+    static var rebootOccuredFromLastTime: Bool {
+        let deviceCurrentBootTime = DeviceManager.deviceCurrentBootTime
+        let storedLastBootTime = DeviceManager.deviceLastBootTime
+        let timeInterval = deviceCurrentBootTime.timeIntervalSince(storedLastBootTime)
+        if timeInterval > 1 {
+            // FIXME:- may need to re-think
+            // registerForDeviceBootTime maybe needed here
+            DeviceManager.registerForDeviceBootTime()
+            return true
+        }
+        return false
+    }
+}
+// Links:
+// https://stackoverflow.com/questions/1443601/how-can-i-detect-whether-the-iphone-has-been-rebooted-since-last-time-app-starte
+// https://stackoverflow.com/questions/46415095/in-ios-using-swift-how-do-you-get-the-time-of-iphone-boot
+

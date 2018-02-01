@@ -72,20 +72,20 @@ class ViewController: UIViewController {
     }
 
     private func updateLabels(with dataUsageInfo: DataUsageInfo) {
-        let wifiSentInMB = Float32(dataUsageInfo.wifiSent)/1000000.0
-        let wifiReceivedInMB = Float32(dataUsageInfo.wifiReceived)/1000000.0
+        let wifiSentInMB = dataUsageInfo.wifiSent
+        let wifiReceivedInMB = dataUsageInfo.wifiReceived
         let totalWiFiDataInMB = wifiSentInMB + wifiReceivedInMB
-        let cellularSentInMB = Float32(dataUsageInfo.wwanDataSent)/1000000.0
-        let cellularReceivedInMB = Float32(dataUsageInfo.wwanDataReceived)/1000000.0
+        let cellularSentInMB = dataUsageInfo.wwanDataSent
+        let cellularReceivedInMB = dataUsageInfo.wwanDataReceived
         let totalCellularDataInMB = cellularSentInMB + cellularReceivedInMB
         DispatchQueue.main.async {
-            self.wifiSentLabel.text = String(format: "%.2f", wifiSentInMB)
-            self.wifiReceivedLabel.text = String(format: "%.2f", wifiReceivedInMB)
-            self.wifiTotalLabel.text = String(format: "%.2f", totalWiFiDataInMB)
+            self.wifiSentLabel.text = wifiSentInMB.toMegabytesString
+            self.wifiReceivedLabel.text = wifiReceivedInMB.toMegabytesString
+            self.wifiTotalLabel.text = totalWiFiDataInMB.toMegabytesString
 
-            self.cellularSentLabel.text = String(format: "%.2f", cellularSentInMB)
-            self.cellularReceivedLabel.text = String(format: "%.2f", cellularReceivedInMB)
-            self.cellularTotalLabel.text = String(format: "%.2f", totalCellularDataInMB)
+            self.cellularSentLabel.text = cellularSentInMB.toMegabytesString
+            self.cellularReceivedLabel.text = cellularReceivedInMB.toMegabytesString
+            self.cellularTotalLabel.text = totalCellularDataInMB.toMegabytesString
         }
     }
 
@@ -96,3 +96,12 @@ class ViewController: UIViewController {
 
 }
 
+private extension UInt32 {
+    var toMegabytesString: String {
+        let byteCountFormatter = ByteCountFormatter()
+        byteCountFormatter.allowedUnits = [.useMB, .useGB]
+        byteCountFormatter.countStyle = .binary
+        let megabytesString = byteCountFormatter.string(fromByteCount: Int64(self))
+        return megabytesString
+    }
+}

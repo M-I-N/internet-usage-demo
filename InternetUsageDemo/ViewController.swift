@@ -9,6 +9,7 @@
 import UIKit
 
 class ViewController: UIViewController {
+    // MARK:- IBOutlets
     @IBOutlet weak var wifiSentLabel: UILabel!
     @IBOutlet weak var wifiReceivedLabel: UILabel!
     @IBOutlet weak var wifiTotalLabel: UILabel!
@@ -16,18 +17,18 @@ class ViewController: UIViewController {
     @IBOutlet weak var cellularSentLabel: UILabel!
     @IBOutlet weak var cellularReceivedLabel: UILabel!
     @IBOutlet weak var cellularTotalLabel: UILabel!
-    
-    var timer: DispatchSourceTimer?
-    var totalDataUsage = DataUsageInfo()
 
+    // MARK:- Private Properties
+    private var timer: DispatchSourceTimer?
+
+    // MARK:- ViewController Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
 
-//        let dataUsageInfo = DataUsage.currentSessionDataUsageInfo()
-//        updateLabels(with: dataUsageInfo)
         if DeviceManager.rebootOccuredFromLastTime {
-            // add child database with mother database
-            let lastSessionDataUsage = DataUsage.getLastSessionDataUsageInfoFromDatabase()
+            // New reboot detected
+            // Store data usage of last session with data usage of all session
+            let lastSessionDataUsage = DataUsage.lastSessionDataUsageInfoFromDatabase
             DataUsage.saveTotal(dataUsageInfo: lastSessionDataUsage)
         }
         startTimer()
@@ -37,17 +38,15 @@ class ViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
-    func periodicUpdateDatabase() {
-        let currentDataUsageInfo = DataUsage.currentSessionDataUsageInfo()
-        DataUsage.saveCurrent(dataUsageInfo: currentDataUsageInfo)
-        updateLabels()
+
+    deinit {
+        self.stopTimer()
     }
-    
-    func startTimer() {
+
+    // MARK:- Private Functions
+    private func startTimer() {
         let queue = DispatchQueue(label: "com.domain.app.timer")  // you can also use `DispatchQueue.main`, if you want
         timer = DispatchSource.makeTimerSource(queue: queue)
-//        timer!.scheduleRepeating(deadline: .now(), interval: .seconds(60))
         timer!.schedule(deadline: .now(), repeating: .seconds(30))
         timer!.setEventHandler { [weak self] in
             // do whatever you want here
@@ -56,27 +55,23 @@ class ViewController: UIViewController {
         timer!.resume()
     }
     
-    func stopTimer() {
+    private func stopTimer() {
         timer?.cancel()
         timer = nil
     }
-    
-    deinit {
-        self.stopTimer()
-    }
 
-
-    @IBAction func refreshButtonPressed(_ sender: UIBarButtonItem) {
-//        let dataUsageInfo = DataUsage.currentSessionDataUsageInfo()
-//        updateLabels(with: dataUsageInfo)
-//        let dataUsageInfo = DataUsage.getTotalDataUsageInfoFromDatabase()
-//        updateLabels(with: dataUsageInfo)
+    private func periodicUpdateDatabase() {
+        let currentDataUsageInfo = DataUsage.currentSessionDataUsageInfo
+        DataUsage.saveCurrent(dataUsageInfo: currentDataUsageInfo)
         updateLabels()
     }
-    
-    func updateLabels() {
-        var dataUsageInfo = DataUsage.getTotalDataUsageInfoFromDatabase()
-        dataUsageInfo += DataUsage.getCurrentSessionDataUsageInfoFromDatabase()
+
+    private func updateLabels() {
+        let dataUsageInfo = DataUsage.allSessionsDataUsageInfo
+        updateLabels(with: dataUsageInfo)
+    }
+
+    private func updateLabels(with dataUsageInfo: DataUsageInfo) {
         let wifiSentInMB = Float32(dataUsageInfo.wifiSent)/1000000.0
         let wifiReceivedInMB = Float32(dataUsageInfo.wifiReceived)/1000000.0
         let totalWiFiDataInMB = wifiSentInMB + wifiReceivedInMB
@@ -84,34 +79,19 @@ class ViewController: UIViewController {
         let cellularReceivedInMB = Float32(dataUsageInfo.wwanDataReceived)/1000000.0
         let totalCellularDataInMB = cellularSentInMB + cellularReceivedInMB
         DispatchQueue.main.async {
-            
-            self.wifiSentLabel.text = /*String(describing: wifiSentInMB)*/ String(format: "%.2f", wifiSentInMB)
-            self.wifiReceivedLabel.text = /*String(describing: wifiReceivedInMB)*/ String(format: "%.2f", wifiReceivedInMB)
-            self.wifiTotalLabel.text = /*String(describing: totalWiFiDataInMB)*/ String(format: "%.2f", totalWiFiDataInMB)
-            
-            self.cellularSentLabel.text = /*String(describing: cellularSentInMB)*/ String(format: "%.2f", cellularSentInMB)
-            self.cellularReceivedLabel.text = /*String(describing: cellularReceivedInMB)*/ String(format: "%.2f", cellularReceivedInMB)
-            self.cellularTotalLabel.text = /*String(describing: totalCellularDataInMB)*/ String(format: "%.2f", totalCellularDataInMB)
+            self.wifiSentLabel.text = String(format: "%.2f", wifiSentInMB)
+            self.wifiReceivedLabel.text = String(format: "%.2f", wifiReceivedInMB)
+            self.wifiTotalLabel.text = String(format: "%.2f", totalWiFiDataInMB)
+
+            self.cellularSentLabel.text = String(format: "%.2f", cellularSentInMB)
+            self.cellularReceivedLabel.text = String(format: "%.2f", cellularReceivedInMB)
+            self.cellularTotalLabel.text = String(format: "%.2f", totalCellularDataInMB)
         }
     }
 
-    func updateLabels(with dataUsageInfo: DataUsageInfo) {
-        let wifiSentInMB = Float32(dataUsageInfo.wifiSent)/1000000.0
-        let wifiReceivedInMB = Float32(dataUsageInfo.wifiReceived)/1000000.0
-        let totalWiFiDataInMB = wifiSentInMB + wifiReceivedInMB
-        let cellularSentInMB = Float32(dataUsageInfo.wwanDataSent)/1000000.0
-        let cellularReceivedInMB = Float32(dataUsageInfo.wwanDataReceived)/1000000.0
-        let totalCellularDataInMB = cellularSentInMB + cellularReceivedInMB
-        DispatchQueue.main.async {
-            
-            self.wifiSentLabel.text = /*String(describing: wifiSentInMB)*/ String(format: "%.2f", wifiSentInMB)
-            self.wifiReceivedLabel.text = /*String(describing: wifiReceivedInMB)*/ String(format: "%.2f", wifiReceivedInMB)
-            self.wifiTotalLabel.text = /*String(describing: totalWiFiDataInMB)*/ String(format: "%.2f", totalWiFiDataInMB)
-            
-            self.cellularSentLabel.text = /*String(describing: cellularSentInMB)*/ String(format: "%.2f", cellularSentInMB)
-            self.cellularReceivedLabel.text = /*String(describing: cellularReceivedInMB)*/ String(format: "%.2f", cellularReceivedInMB)
-            self.cellularTotalLabel.text = /*String(describing: totalCellularDataInMB)*/ String(format: "%.2f", totalCellularDataInMB)
-        }
+    // MARK:- Action Methods
+    @IBAction func refreshButtonPressed(_ sender: UIBarButtonItem) {
+        updateLabels()
     }
 
 }
